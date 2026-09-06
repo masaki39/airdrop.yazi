@@ -36,7 +36,7 @@ Add a keybinding in `~/.config/yazi/keymap.toml`:
 
 ```toml
 [[mgr.prepend_keymap]]
-on = ["g", "a"]
+on = ["o", "a"]
 run = "plugin airdrop"
 desc = "Open AirDrop"
 ```
