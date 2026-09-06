@@ -16,36 +16,28 @@ return {
             return ya.notify({ title = "airdrop.yazi", content = "No file selected or hovered", level = "warn", timeout = 3 })
         end
 
-        -- Reveal (and select) the target file(s) in Finder first, so the
-        -- AirDrop shortcut below shares them instead of opening blindly.
-        local reveal = Command("open"):arg({ "-R" })
+        local cmd = Command("airdrop")
         for _, url in ipairs(urls) do
-            reveal = reveal:arg(url)
-        end
-        local output, err = reveal:stderr(Command.PIPED):output()
-        if not output or not output.status.success then
-            return ya.notify({
-                title = "airdrop.yazi",
-                content = tostring(err or (output and output.stderr) or "open -R failed"),
-                level = "error",
-                timeout = 3,
-            })
+            cmd = cmd:arg(url)
         end
 
-        -- Give Finder a beat to settle the selection, then trigger its
-        -- built-in "Share via AirDrop" shortcut (Cmd+Shift+R) on it.
-        local script = table.concat({
-            'tell application "Finder" to activate',
-            "delay 0.3",
-            'tell application "System Events" to keystroke "r" using {command down, shift down}',
-        }, "\n")
-        local as_output, as_err = Command("osascript"):arg({ "-e", script }):stderr(Command.PIPED):output()
-        if not as_output or not as_output.status.success then
+        local output, err = cmd:stderr(Command.PIPED):output()
+        if not output then
+            return ya.notify({
+                title = "airdrop.yazi",
+                content = "`airdrop` command not found. Install it with: brew install vldmrkl/formulae/airdrop-cli ("
+                    .. tostring(err)
+                    .. ")",
+                level = "error",
+                timeout = 5,
+            })
+        end
+        if not output.status.success then
             ya.notify({
                 title = "airdrop.yazi",
-                content = tostring(as_err or (as_output and as_output.stderr) or "osascript failed"),
+                content = tostring(output.stderr ~= "" and output.stderr or "airdrop command failed"),
                 level = "error",
-                timeout = 3,
+                timeout = 5,
             })
         end
     end,
