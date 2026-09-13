@@ -21,7 +21,7 @@ return {
             cmd = cmd:arg(url)
         end
 
-        local output, err = cmd:stderr(Command.PIPED):output()
+        local output, err = cmd:stdout(Command.PIPED):stderr(Command.PIPED):output()
         if not output then
             return ya.notify({
                 title = "airdrop.yazi",
@@ -33,9 +33,16 @@ return {
             })
         end
         if not output.status.success then
+            local reason = output.stderr
+            if reason == "" then
+                reason = output.stdout
+            end
+            if reason == "" then
+                reason = "airdrop command failed"
+            end
             ya.notify({
                 title = "airdrop.yazi",
-                content = tostring(output.stderr ~= "" and output.stderr or "airdrop command failed"),
+                content = tostring(reason),
                 level = "error",
                 timeout = 5,
             })
